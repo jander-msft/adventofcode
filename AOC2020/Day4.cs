@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using static AOC2020.Day4;
 
@@ -11,23 +11,13 @@ namespace AOC2020
         {
         }
 
-        private Passport _current;
-
-        protected override Passport Parse(string line)
+        protected override Passport Parse(StreamReader reader)
         {
-            if (string.IsNullOrEmpty(line))
-            {
-                Passport current = _current;
-                _current = null;
-                return current;
-            }
-            else
-            {
-                if (null == _current)
-                {
-                    _current = new Passport();
-                }
+            Passport passport = new Passport();
 
+            string line = reader.ReadLine();
+            while (!string.IsNullOrEmpty(line))
+            {
                 string[] keyvalues = line.Split(" ");
 
                 foreach (string keyvalue in keyvalues)
@@ -35,62 +25,51 @@ namespace AOC2020
                     switch (keyvalue.Substring(0, 3).ToLowerInvariant())
                     {
                         case "byr":
-                            _current.BirthYear = keyvalue.Substring(4);
+                            passport.BirthYear = keyvalue.Substring(4);
                             break;
                         case "iyr":
-                            _current.IssueYear = keyvalue.Substring(4);
+                            passport.IssueYear = keyvalue.Substring(4);
                             break;
                         case "eyr":
-                            _current.ExpirationYear = keyvalue.Substring(4);
+                            passport.ExpirationYear = keyvalue.Substring(4);
                             break;
                         case "hgt":
-                            _current.Height = keyvalue.Substring(4);
+                            passport.Height = keyvalue.Substring(4);
                             break;
                         case "hcl":
-                            _current.HairColor = keyvalue.Substring(4);
+                            passport.HairColor = keyvalue.Substring(4);
                             break;
                         case "ecl":
-                            _current.EyeColor = keyvalue.Substring(4);
+                            passport.EyeColor = keyvalue.Substring(4);
                             break;
                         case "pid":
-                            _current.PassportId = keyvalue.Substring(4);
+                            passport.PassportId = keyvalue.Substring(4);
                             break;
                         case "cid":
-                            _current.CountryId = keyvalue.Substring(4);
+                            passport.CountryId = keyvalue.Substring(4);
                             break;
                     }
                 }
 
-                return null;
+                line = reader.ReadLine();
             }
+
+            return passport;
         }
 
         protected override string Solve1(Passport[] items)
         {
-            IList<Passport> list = new List<Passport>(items);
-            if (_current != null)
-            {
-                list.Add(_current);
-            }
-
-            return list.Count(ValidPart1).ToString();
+            return items.Count(ValidPart1).ToString();
         }
 
         protected override string Solve2(Passport[] items)
         {
-            IList<Passport> list = new List<Passport>(items);
-            if (_current != null)
-            {
-                list.Add(_current);
-            }
-
-            return list.Count(ValidPart2).ToString();
+            return items.Count(ValidPart2).ToString();
         }
 
         private static bool ValidPart1(Passport item)
         {
-            return null != item &&
-                !string.IsNullOrEmpty(item.BirthYear) &&
+            return !string.IsNullOrEmpty(item.BirthYear) &&
                 !string.IsNullOrEmpty(item.IssueYear) &&
                 !string.IsNullOrEmpty(item.ExpirationYear) &&
                 !string.IsNullOrEmpty(item.Height) &&
@@ -101,9 +80,6 @@ namespace AOC2020
 
         private static bool ValidPart2(Passport item)
         {
-            if (null == item)
-                return false;
-
             if (!Int32.TryParse(item.BirthYear, out int birthYear) ||
                 birthYear < 1920 ||
                 birthYear > 2002)

@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace AOC2020
 {
@@ -12,9 +12,9 @@ namespace AOC2020
         {
         }
 
-        protected override long Parse(string line)
+        protected override long Parse(StreamReader reader)
         {
-            return long.Parse(line);
+            return long.Parse(reader.ReadLine());
         }
 
         protected override string Solve1(long[] items)

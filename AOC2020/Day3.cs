@@ -1,4 +1,6 @@
-﻿namespace AOC2020
+﻿using System.IO;
+
+namespace AOC2020
 {
     public class Day3 : BaseDay<string>
     {
@@ -6,9 +8,9 @@
         {
         }
 
-        protected override string Parse(string line)
+        protected override string Parse(StreamReader reader)
         {
-            return line;
+            return reader.ReadLine();
         }
 
         protected override string Solve1(string[] items)

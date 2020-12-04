@@ -44,27 +44,25 @@ namespace AOC2020
             return LoadData("Puzzle2.txt", Parse2);
         }
 
-        protected abstract T1 Parse1(string line);
+        protected abstract T1 Parse1(StreamReader reader);
 
-        protected abstract T2 Parse2(string line);
+        protected abstract T2 Parse2(StreamReader reader);
 
         protected abstract string Solve1(T1[] items);
 
         protected abstract string Solve2(T2[] items);
 
-        protected T[] LoadData<T>(string fileName, Func<string, T> parse)
+        protected T[] LoadData<T>(string fileName, Func<StreamReader, T> parse)
         {
             string filePath = Path.Combine("Input", _dayName, fileName);
             using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
             using var reader = new StreamReader(stream);
 
             IList<T> inputs = new List<T>();
-            string line;
-            while (null != (line = reader.ReadLine()))
+            while (!reader.EndOfStream)
             {
-                inputs.Add(parse(line));
+                inputs.Add(parse(reader));
             }
-
             return inputs.ToArray();
         }
 
@@ -85,16 +83,16 @@ namespace AOC2020
         {
         }
 
-        protected override sealed T Parse1(string line)
+        protected override sealed T Parse1(StreamReader reader)
         {
-            return Parse(line);
+            return Parse(reader);
         }
 
-        protected override sealed T Parse2(string line)
+        protected override sealed T Parse2(StreamReader reader)
         {
-            return Parse(line);
+            return Parse(reader);
         }
 
-        protected abstract T Parse(string line);
+        protected abstract T Parse(StreamReader reader);
     }
 }

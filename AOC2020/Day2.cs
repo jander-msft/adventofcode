@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using static AOC2020.Day2;
 
@@ -13,9 +14,9 @@ namespace AOC2020
         {
         }
 
-        protected override Day2Item Parse(string line)
+        protected override Day2Item Parse(StreamReader reader)
         {
-            var result = Format.Match(line);
+            var result = Format.Match(reader.ReadLine());
             return new Day2Item()
             {
                 Lower = int.Parse(result.Groups[1].Value),
