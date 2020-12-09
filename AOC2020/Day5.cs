@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using static AOC2020.Day5;
 
@@ -12,12 +13,12 @@ namespace AOC2020
 
         protected override Seat Parse(StreamReader reader)
         {
-            string line = reader.ReadLine();
+            ReadOnlySpan<char> span = reader.ReadLine();
 
             return new Seat()
             {
-                Row = ToInt(line, 0, 7, 'B'),
-                Column = ToInt(line, 7, 3, 'R')
+                Row = span.Slice(0, 7).ToInt32('B'),
+                Column = span.Slice(7, 3).ToInt32('R')
             };
         }
 
@@ -39,19 +40,6 @@ namespace AOC2020
                 .Single();
 
             return SeatId(row.Key, column).ToString();
-        }
-
-        private static int ToInt(string line, int start, int length, char on)
-        {
-            int value = 0;
-            for (int i = start; i < start + length; i++)
-            {
-                if (line[i] == on)
-                {
-                    value |= 1 << (length - 1 - i + start);
-                }
-            }
-            return value;
         }
 
         private static int SeatId(Seat seat)
