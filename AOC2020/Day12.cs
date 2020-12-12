@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using static AOC2020.Day12;
 
@@ -10,7 +8,63 @@ namespace AOC2020
 {
     public class Day12 : BaseDay<Instruction>
     {
-        private static Regex LineRegex = new Regex(@"^(?<code>\w)(?<count>\d+)$");
+        private delegate void InstructionAction(VirtualMachine vm, int count);
+
+        private static readonly InstructionAction LeftPuzzle1 = (vm, count) =>
+            vm.ShipDirection = vm.ShipDirection.RotateCCW(count / 90);
+        private static readonly InstructionAction RightPuzzle1 = (vm, count) =>
+            vm.ShipDirection = vm.ShipDirection.RotateCW(count / 90);
+        private static readonly InstructionAction ForwardPuzzle1 = (vm, count) =>
+            vm.ShipLocation = vm.ShipLocation.Add(count, vm.ShipDirection);
+        private static readonly InstructionAction EastPuzzle1 = (vm, count) =>
+            vm.ShipLocation = vm.ShipLocation.Add(count, Direction.East);
+        private static readonly InstructionAction NorthPuzzle1 = (vm, count) =>
+            vm.ShipLocation = vm.ShipLocation.Add(count, Direction.North);
+        private static readonly InstructionAction WestPuzzle1 = (vm, count) =>
+            vm.ShipLocation = vm.ShipLocation.Add(count, Direction.West);
+        private static readonly InstructionAction SouthPuzzle1 = (vm, count) =>
+            vm.ShipLocation = vm.ShipLocation.Add(count, Direction.South);
+
+        private static readonly IDictionary<string, InstructionAction> Puzzle1Actions =
+            new Dictionary<string, InstructionAction>(StringComparer.Ordinal)
+            {
+                { "L", LeftPuzzle1 },
+                { "R", RightPuzzle1 },
+                { "F", ForwardPuzzle1 },
+                { "E", EastPuzzle1 },
+                { "N", NorthPuzzle1 },
+                { "W", WestPuzzle1 },
+                { "S", SouthPuzzle1 }
+            };
+
+        private static readonly InstructionAction LeftPuzzle2 = (vm, count) =>
+            vm.WaypointLocation = vm.WaypointLocation.RotateCCW(count / 90);
+        private static readonly InstructionAction RightPuzzle2 = (vm, count) =>
+            vm.WaypointLocation = vm.WaypointLocation.RotateCW(count / 90);
+        private static readonly InstructionAction ForwardPuzzle2 = (vm, count) =>
+            vm.ShipLocation += vm.WaypointLocation.Multiply(count);
+        private static readonly InstructionAction EastPuzzle2 = (vm, count) =>
+            vm.WaypointLocation = vm.WaypointLocation.Add(count, Direction.East);
+        private static readonly InstructionAction NorthPuzzle2 = (vm, count) =>
+            vm.WaypointLocation = vm.WaypointLocation.Add(count, Direction.North);
+        private static readonly InstructionAction WestPuzzle2 = (vm, count) =>
+            vm.WaypointLocation = vm.WaypointLocation.Add(count, Direction.West);
+        private static readonly InstructionAction SouthPuzzle2 = (vm, count) =>
+            vm.WaypointLocation = vm.WaypointLocation.Add(count, Direction.South);
+
+        private static readonly IDictionary<string, InstructionAction> Puzzle2Actions =
+            new Dictionary<string, InstructionAction>(StringComparer.Ordinal)
+            {
+                { "L", LeftPuzzle2 },
+                { "R", RightPuzzle2 },
+                { "F", ForwardPuzzle2 },
+                { "E", EastPuzzle2 },
+                { "N", NorthPuzzle2 },
+                { "W", WestPuzzle2 },
+                { "S", SouthPuzzle2 }
+            };
+
+        private static readonly Regex LineRegex = new Regex(@"^(?<code>\w)(?<count>\d+)$");
 
         public Day12() : base("Day12", "2297", "89984")
         {
@@ -24,167 +78,61 @@ namespace AOC2020
 
             return new Instruction()
             {
-                Code = lineMatch.Groups["code"].Value[0],
+                Code = lineMatch.Groups["code"].Value,
                 Count = Int32.Parse(lineMatch.Groups["count"].Value)
             };
         }
 
         protected override string Solve1(Instruction[] items)
         {
-            Direction direction = Direction.East;
+            VirtualMachine vm = new VirtualMachine();
+            vm.ShipLocation = LongPoint.Zero;
+            vm.ShipDirection = Direction.East;
 
-            int x = 0;
-            int y = 0;
+            Execute(vm, items, Puzzle1Actions);
 
-            for (int i = 0; i < items.Length; i++)
-            {
-                Instruction item = items[i];
-                switch (item.Code)
-                {
-                    case 'L':
-                    case 'R':
-                        direction = Rotate(direction, item.Code, item.Count / 90);
-                        break;
-                    case 'F':
-                        switch (direction)
-                        {
-                            case Direction.East:
-                                x -= item.Count;
-                                break;
-                            case Direction.North:
-                                y += item.Count;
-                                break;
-                            case Direction.South:
-                                y -= item.Count;
-                                break;
-                            case Direction.West:
-                                x += item.Count;
-                                break;
-                        }
-                        break;
-                    case 'N':
-                        y += item.Count;
-                        break;
-                    case 'S':
-                        y -= item.Count;
-                        break;
-                    case 'E':
-                        x -= item.Count;
-                        break;
-                    case 'W':
-                        x += item.Count;
-                        break;
-                }
-            }
-
-            return (Math.Abs(x) +Math.Abs(y)).ToString();
-        }
-
-        private static Direction Rotate(Direction direction, char spin, int count)
-        {
-            Direction newDirection = Direction.North;
-            switch (direction)
-            {
-                case Direction.East:
-                    newDirection = spin == 'L' ? Direction.North : Direction.South;
-                    break;
-                case Direction.North:
-                    newDirection = spin == 'L' ? Direction.West : Direction.East;
-                    break;
-                case Direction.South:
-                    newDirection = spin == 'L' ? Direction.East : Direction.West;
-                    break;
-                case Direction.West:
-                    newDirection = spin == 'L' ? Direction.South : Direction.North;
-                    break;
-            }
-
-            if (count == 1)
-            {
-                return newDirection;
-            }
-            else
-            {
-                return Rotate(newDirection, spin, count - 1);
-            }
-        }
-
-        private static (int, int) Rotate(int x, int y, char spin, int count)
-        {
-            if (spin == 'L')
-            {
-                int xNew = -y;
-                y = x;
-                x = xNew;
-            }
-            else
-            {
-                int xNew = y;
-                y = -x;
-                x = xNew;
-            }
-
-            if (count == 1)
-            {
-                return (x, y);
-            }
-            else
-            {
-                return Rotate(x, y, spin, count - 1);
-            }
+            return vm.ShipLocation.Manhattan.ToString();
         }
 
         protected override string Solve2(Instruction[] items)
         {
-            int xShip = 0;
-            int yShip = 0;
-            int xRelative = 10;
-            int yRelative = 1;
+            VirtualMachine vm = new VirtualMachine();
+            vm.ShipLocation = LongPoint.Zero;
+            vm.ShipDirection = Direction.East;
+            vm.WaypointLocation = new LongPoint(10, 1);
 
-            for (int i = 0; i < items.Length; i++)
+            Execute(vm, items, Puzzle2Actions);
+
+            return vm.ShipLocation.Manhattan.ToString();
+        }
+
+        private static void Execute(VirtualMachine vm, Instruction[] instructions, IDictionary<string, InstructionAction> actions)
+        {
+            for (int i = 0; i < instructions.Length; i++)
             {
-                Instruction item = items[i];
-                switch (item.Code)
-                {
-                    case 'L':
-                    case 'R':
-                        (xRelative, yRelative) = Rotate(xRelative, yRelative, item.Code, item.Count / 90);
-                        break;
-                    case 'F':
-                        xShip += item.Count * xRelative;
-                        yShip += item.Count * yRelative;
-                        break;
-                    case 'N':
-                        yRelative += item.Count;
-                        break;
-                    case 'S':
-                        yRelative -= item.Count;
-                        break;
-                    case 'E':
-                        xRelative += item.Count;
-                        break;
-                    case 'W':
-                        xRelative -= item.Count;
-                        break;
-                }
-            }
+                Instruction instruction = instructions[i];
 
-            return (Math.Abs(xShip) + Math.Abs(yShip)).ToString();
+                if (!actions.TryGetValue(instruction.Code, out InstructionAction action))
+                    throw new InvalidOperationException();
+
+                action(vm, instruction.Count);
+            }
         }
 
         public class Instruction
         {
-            public char Code { get; set; }
+            public string Code { get; set; }
 
             public int Count { get; set; }
         }
 
-        public enum Direction
+        public class VirtualMachine
         {
-            North,
-            South,
-            East,
-            West
+            public Direction ShipDirection { get; set; }
+
+            public LongPoint ShipLocation { get; set; }
+
+            public LongPoint WaypointLocation { get; set; }
         }
     }
 }
