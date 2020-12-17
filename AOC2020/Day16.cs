@@ -76,45 +76,16 @@ namespace AOC2020
         {
             Item item = items.First();
 
-            long acc = 0;
-            foreach (IDictionary<int, long> ticket in item.NearbyTickets)
-            {
-                foreach (long value in ticket.Values)
-                {
-                    if (item.Rules.Values.All(rules => !rules.Any(r => r.Within(value))))
-                    {
-                        acc += value;
-                        break;
-                    }
-                }
-            }
-
-            return acc.ToString();
+            return item.NearbyTickets.Sum(t => t.Values.FirstOrDefault(v => item.Rules.Values.All(rules => !rules.Any(r => r.Within(v))))).ToString();
         }
 
         protected override string Solve2(Item[] items)
         {
             Item item = items.First();
 
-            IList<IDictionary<int, long>> validTickets = new List<IDictionary<int, long>>();
-
-            foreach (IDictionary<int, long> ticket in item.NearbyTickets)
-            {
-                bool isValid = true;
-                foreach (long value in ticket.Values)
-                {
-                    if (item.Rules.Values.All(rules => !rules.Any(r => r.Within(value))))
-                    {
-                        isValid = false;
-                        break;
-                    }
-                }
-
-                if (isValid)
-                {
-                    validTickets.Add(ticket);
-                }
-            }
+            IList<IDictionary<int, long>> validTickets = item.NearbyTickets
+                .Except(item.NearbyTickets.Where(t => t.Values.Any(v => item.Rules.Values.All(rules => !rules.Any(r => r.Within(v))))))
+                .ToList();
 
             IDictionary<string, IList<int>> map = new Dictionary<string, IList<int>>();
 
